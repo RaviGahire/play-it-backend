@@ -1,7 +1,7 @@
 {
   "name": "playit",
   "version": "1.0.0",
-  "description": "Video Streaming Web App With Node And React js",
+  "description": "Video Streaming Web App With Node js And React js",
   "keywords": [
     "Javascript",
     "backend",
@@ -10,9 +10,13 @@
   ],
   "license": "ISC",
   "author": "Ravi Gahire",
-  "type": "commonjs",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev" :"nodemon src/index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }
