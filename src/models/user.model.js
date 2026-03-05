@@ -1,9 +1,9 @@
 import mongoose, { Schema } from "mongoose";
-
+import bcrypt from "bcrypt"
 const userSchema = new Schema({
     username: {
         type: String,
-        required: [true , "Username is required"],
+        required: [true, "Username is required"],
         unique: true,
         lowercase: true,
         trim: true,
@@ -11,7 +11,7 @@ const userSchema = new Schema({
     },
     email: {
         type: String,
-        required: [true , "Email is required"],
+        required: [true, "Email is required"],
         unique: true,
         lowercase: true,
         trim: true,
@@ -19,7 +19,7 @@ const userSchema = new Schema({
     },
     fullname: {
         type: String,
-        required: [true , "Fullname is required"],
+        required: [true, "Fullname is required"],
         trim: true,
 
     },
@@ -31,20 +31,37 @@ const userSchema = new Schema({
     },
     coverImage: {
         type: String,
-           
+
     },
-    watchHistory:{
+    watchHistory: {
         type: Schema.Types.ObjectId,
-        ref:"Video"
+        ref: "Video"
     },
-    password:{
-        type:String,
-        required:[true , "Password is required"]
+    password: {
+        type: String,
+        required: [true, "Password is required"]
     },
-    refreshToken:{
-        type:String
+    refreshToken: {
+        type: String
     }
 
-},{timestamps:true})
+}, { timestamps: true })
+
+// hashed user password using pre method 
+userSchema.pre("save", async function (next) {
+
+    if (!this.isModified("password")) {
+        return next()
+    }
+
+    this.password = bcrypt.hash(this.password, 10)
+    next()
+})
+
+// custom method to check password
+userSchema.methods.isPasswordCorrect = async function (password) {
+    return await bcrypt.compare(password, this.password)
+}
+
 
 export const User = mongoose.model("User", userSchema)
