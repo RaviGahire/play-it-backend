@@ -50,14 +50,14 @@ const userSchema = new Schema({
 }, { timestamps: true })
 
 // hashed user password using pre method 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
 
     if (!this.isModified("password")) {
         return next()
     }
 
     this.password = await bcrypt.hash(this.password, 10)
-    next()
+    
 })
 
 // custom method to check password

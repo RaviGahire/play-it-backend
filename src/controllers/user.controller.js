@@ -5,7 +5,7 @@ import { uploadOnCloudinary } from "../utils/cloudnary.js"
 import  {ApiResponse} from "../utils/ApiResponse.js"
 
 // user routes
-export const registerUser = asyncHandler(async (req, res) => {
+export const registerUser = asyncHandler(async (req, res ) => {
     // get data from frontend
     const { fullname, username, email, password } = req.body
 
@@ -35,7 +35,7 @@ export const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Avatar file is Required")
     }
 
-    const user = User.create({
+    const user = await User.create({
         fullname,
         avatar: avatar.url,
         coverImage: coverImage?.url || "",
@@ -46,6 +46,8 @@ export const registerUser = asyncHandler(async (req, res) => {
     })
     
     const createdUser  = await User.findById(user._id).select("-password -refreshToken")
+
+    
 
     if(!createdUser){
         throw new ApiError(500,"User registration failed")
