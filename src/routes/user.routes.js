@@ -13,7 +13,7 @@ router.route("/register").post(upload.fields([{name:"avatar",maxCount:1},{name:"
 router.route("/login").post(loginUser)
 
 // secured routes
-router.route("/logout").post(verifyJwtToken, logoutUser)
+router.route("/logout").post(verifyJwtToken)
 
 
 export default router
