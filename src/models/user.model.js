@@ -51,19 +51,17 @@ const userSchema = new Schema({
 
 // hashed user password using pre method 
 userSchema.pre("save", async function () {
-
     if (!this.isModified("password")) {
         return next()
     }
-
     this.password = await bcrypt.hash(this.password, 10)
-    
 })
 
 // custom method to check password
-userSchema.methods.isPasswordCorrect = async function (password) {
-    return await bcrypt.compare(password, this.password)
+userSchema.methods.isPasswordCorrect = function (password) {
+    return bcrypt.compare(password, this.password)
 }
+
 
 // Jwt tokens
 userSchema.methods.generateAccessToken = function () {
