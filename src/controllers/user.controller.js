@@ -102,7 +102,7 @@ export const loginUser = asyncHandler(async (req, res) => {
     const user = await User.findOne({ $or: [{ username }, { email }] })
 
     if (!user) {
-        throw new ApiError(404, "User does not exist")
+        throw new ApiError(401, "User does not exist")
     }
 
     // console.log(user)
@@ -110,7 +110,7 @@ export const loginUser = asyncHandler(async (req, res) => {
     const isPassValid = await user.isPasswordCorrect(password)
 
     if (!isPassValid) {
-        throw new ApiError(401, "Invalid passowrd")
+        throw new ApiError(401, "Invalid credentials")
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id) // passed user id 
@@ -162,7 +162,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     //acess refresh token for both mobile and web
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
-    console.log("incomingRefreshToken",incomingRefreshToken)
+    console.log("incomingRefreshToken", incomingRefreshToken)
 
     if (!incomingRefreshToken) {
         throw new ApiError(401, "unauthorized request")
@@ -173,7 +173,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         const decodedRefreshToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
 
         if (!decodedRefreshToken) {
-            throw new ApiError(404, "Token not found")
+            throw new ApiError(401, "Token not found")
         }
 
         const userId = decodedRefreshToken?._id
@@ -204,3 +204,100 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 
     }
 })
+
+//change password
+export const changeCurrentUserPassword = asyncHandler(async (req, res) => {
+
+    const { oldPassword, newPassword } = req.body
+
+    const user = await User.findById(req.user?._id)
+
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(401, "invalid old password")
+    }
+
+    user.password = newPassword
+
+    await user.save({ validateBeforeSave: false })
+
+    return res.status(200)
+        .json(new ApiResponse(200, {}, "Password chnaged successfully"))
+
+})
+
+// get current logged in user
+export const getCurrentUser = asyncHandler(async (req, res) => {
+    const currentUser = req.user
+    if (!currentUser) {
+        throw new ApiError(401, "current user not found")
+    }
+    return res.status(200).json(new ApiResponse(200, currentUser, "Current user fetched successfully"))
+})
+
+// update user
+export const updateUserAccountDetails = asyncHandler(async (req, res) => {
+    const { fullname, email } = req.body
+    if (!fullname || email) {
+        throw new ApiError(400, "All fields are required")
+    }
+
+    const userId = req.user?._id
+    const updatedUser = await User.findByIdAndUpdate(userId, {
+        $set: {
+            fullname, email
+        }
+    }, { new: true }).select("-password")
+
+    return res.status(200)
+        .json(new ApiResponse(200, updatedUser, "Account details updated successfully"))
+
+})
+
+//file update endpoint 
+//update user avatar
+export const updateUserAvatar = asyncHandler(async (req, res) => {
+
+    let avatarLocalPath = req.file?.path
+
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "avatar file is missing")
+    }
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+
+    if (!avatar.url) {
+        throw new ApiError(400, "Error while uploading avatar")
+    }
+
+    await User.findByIdAndUpdate(
+        req.user?._id, {
+        $set: { avatar: avatar.url }
+    }, { new: true })
+
+    return res.status(200).json(new ApiResponse(200, {}, "Avatar updated sucessfully"))
+
+})  
+
+//update cover image
+export const updateUserCoverImage = asyncHandler(async (req, res) => {
+
+    let coverImageLocalPath = req.file?.path
+
+    if (!coverImageLocalPath) {
+        throw new ApiError(400, "Cover image file is missing")
+    }
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+
+    if (!coverImage.url) {
+        throw new ApiError(400, "Error while uploading cover image")
+    }
+
+    await User.findByIdAndUpdate(
+        req.user?._id, {
+        $set: { coverImage: coverImage.url }
+    }, { new: true })
+
+    return res.status(200).json(new ApiResponse(200, {}, "Cover image updated sucessfully"))
+
+})  
