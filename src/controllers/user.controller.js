@@ -162,6 +162,8 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     //acess refresh token for both mobile and web
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
+    console.log("incomingRefreshToken",incomingRefreshToken)
+
     if (!incomingRefreshToken) {
         throw new ApiError(401, "unauthorized request")
     }
@@ -194,9 +196,9 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         const { accessToken, newRefreshToken } = await generateAccessAndRefreshTokens(user._id)
 
         return res.status(200)
-            .cookie("accesstoken", accessToken, options)
+            .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", newRefreshToken, options)
-            .json(ApiResponse(200, { accessToken, refreshToken: newRefreshToken }, "Access token refresh successfully"))
+            .json(new ApiResponse(200, { accessToken, refreshToken: newRefreshToken }, "Access token refresh successfully"))
     } catch (error) {
         throw new ApiError(401, error.message, "Invalid refresh token")
 
