@@ -9,11 +9,10 @@ const router = Router()
 router.route("/register").post(upload.fields([{name:"avatar",maxCount:1},{name:"coverImage",maxCount:1}]),registerUser)
 
 // login 
-
 router.route("/login").post(loginUser)
 
 // secured routes
-router.route("/logout").post(verifyJwtToken)
+router.route("/logout").post(verifyJwtToken,logoutUser)
 
 
 export default router
