@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from "../utils/cloudnary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken"
 import fs from "fs"
+import { subscribe } from "diagnostics_channel"
 
 
 // custom method for access and refresh token
@@ -208,7 +209,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 //change password
 export const changeCurrentUserPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body
-    
+
     if (!oldPassword || !newPassword) {
         throw new ApiError(400, "Please provide both passwords")
     }
@@ -218,7 +219,7 @@ export const changeCurrentUserPassword = asyncHandler(async (req, res) => {
         throw new ApiError(404, "User not found")
     }
 
-     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
 
     if (!isPasswordCorrect) {
         throw new ApiError(401, "invalid old password")
@@ -295,7 +296,6 @@ export const updateUserAvatar = asyncHandler(async (req, res) => {
 
 })
 
-
 //update cover image
 export const updateUserCoverImage = asyncHandler(async (req, res) => {
 
@@ -317,4 +317,67 @@ export const updateUserCoverImage = asyncHandler(async (req, res) => {
 
     return res.status(200).json(new ApiResponse(200, {}, "Cover image updated sucessfully"))
 
-})  
+})
+
+//aggrigation pipeline route
+
+export const getUserChannelProfile = asyncHandler(async (req, res) => {
+
+    const { username } = req.params
+
+    if (!username?.trim()) {
+        throw new ApiError(400, "Username is missing")
+    }
+    //aggregation piple line
+    const channel = await User.aggregate([
+        { $match: { username: username } }, // matches the requested username
+        {
+            $lookup: {                     //Subscribers of this channel field matches this user's _id
+                from: "subscriptions",
+                localField: "_id", //current user's _id
+                foreignField: "channel", //field in subscriptions
+                as: "subscribers" //output array name
+            }
+        },
+        {
+            $lookup: { //Get all channels this user has subscribed to
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "subscribers",
+                as: "subscribedTo"
+            }
+        },
+        {
+            $addFields: {
+                subscribersCount: { $size: "$subscribers" },    // total number of subscribers
+                channelsSubscribedToCount: { $size: "$subscribedTo" }, // total channels this user subscribed to
+                isSubscribed: {
+                    $cond: { //condition
+                        if: { $in: [req.user._id, "$subscribers.subscriber"] }, //check if logged-in user's id exists
+                        then: true,
+                        else: false
+                    }
+                }
+            }
+        },
+        {
+            $project: { // sent selectedd fields to frontend
+                fullname: 1,
+                username: 1,
+                subscribersCount: 1,
+                channelsSubscribedToCount: 1,
+                avatar: 1,
+                coverImage: 1,
+                email: 1
+            }
+        }
+
+    ])
+
+    if (channel?.length) {
+        throw new ApiError(404, "channel does not exists")
+    }
+
+    return res.status(200).json(new ApiResponse(200, channel[0], "User channel fetched successfully"))
+
+})
