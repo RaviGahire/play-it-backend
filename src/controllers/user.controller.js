@@ -207,12 +207,18 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 
 //change password
 export const changeCurrentUserPassword = asyncHandler(async (req, res) => {
-
     const { oldPassword, newPassword } = req.body
+    
+    if (!oldPassword || !newPassword) {
+        throw new ApiError(400, "Please provide both passwords")
+    }
 
     const user = await User.findById(req.user?._id)
+    if (!user) {
+        throw new ApiError(404, "User not found")
+    }
 
-    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
 
     if (!isPasswordCorrect) {
         throw new ApiError(401, "invalid old password")
@@ -227,9 +233,14 @@ export const changeCurrentUserPassword = asyncHandler(async (req, res) => {
 
 })
 
+//forgot password
+
+
 // get current logged in user
 export const getCurrentUser = asyncHandler(async (req, res) => {
+
     const currentUser = req.user
+
     if (!currentUser) {
         throw new ApiError(401, "current user not found")
     }
@@ -239,7 +250,9 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
 // update user
 export const updateUserAccountDetails = asyncHandler(async (req, res) => {
     const { fullname, email } = req.body
-    if (!fullname || email) {
+    // console.log(fullname,email)
+
+    if (!(fullname.trim() && email.trim())) {
         throw new ApiError(400, "All fields are required")
     }
 
@@ -277,7 +290,7 @@ export const updateUserAvatar = asyncHandler(async (req, res) => {
 
     return res.status(200).json(new ApiResponse(200, {}, "Avatar updated sucessfully"))
 
-})  
+})
 
 //update cover image
 export const updateUserCoverImage = asyncHandler(async (req, res) => {

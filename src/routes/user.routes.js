@@ -17,16 +17,16 @@ router.route("/refresh-token").post(refreshAccessToken)
 
 
 //change user password 
-router.route("/change-password").post(changeCurrentUserPassword)
+router.route("/change-password").post(verifyJwtToken,changeCurrentUserPassword)
 
 //get user profile 
-router.route("/profile").get(getCurrentUser)
+router.route("/current-user").get(verifyJwtToken,getCurrentUser)
 
 //update user account details
-router.route("/update").post(updateUserAccountDetails)
+router.route("/update-user-details").post(verifyJwtToken,updateUserAccountDetails)
 
 //file updation routes
-router.route("/update-avatar").post(updateUserAvatar)
-router.route("/update-cover-image").post(updateUserCoverImage)
+router.route("/update-avatar").post(verifyJwtToken,updateUserAvatar)
+router.route("/update-cover-image").post(verifyJwtToken,updateUserCoverImage)
 
 export default router
