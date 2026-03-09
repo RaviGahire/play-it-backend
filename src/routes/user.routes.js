@@ -25,8 +25,8 @@ router.route("/current-user").get(verifyJwtToken,getCurrentUser)
 //update user account details
 router.route("/update-user-details").post(verifyJwtToken,updateUserAccountDetails)
 
-//file updation routes
-router.route("/update-avatar").post(verifyJwtToken,updateUserAvatar)
-router.route("/update-cover-image").post(verifyJwtToken,updateUserCoverImage)
+//image update routes
+router.route("/update-avatar").post(verifyJwtToken,upload.single("avatar") ,updateUserAvatar)
+router.route("/update-cover-image").post(verifyJwtToken,upload.single("coverImage"),updateUserCoverImage)
 
 export default router

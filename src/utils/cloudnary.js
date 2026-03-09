@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary"
 import fs from "fs"
+import { ApiError } from "./ApiError.js"
 
 
 // basic config 
@@ -36,6 +37,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     } catch (error) {
         fs.unlinkSync(localFilePath);
         console.error("Cloudinary upload error:", error)
+       throw new ApiError(413, "File size is too large. Max file size is 4 MB")
         return null;
     }
 }
