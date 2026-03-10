@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { changeCurrentUserPassword, getCurrentUser, getUserChannelProfile, loginUser, logoutUser, refreshAccessToken, registerUser, updateUserAccountDetails, updateUserAvatar, updateUserCoverImage } from "../controllers/user.controller.js";
+import { changeCurrentUserPassword, getCurrentUser, getUserChannelProfile, getUserWatchHistory, loginUser, logoutUser, refreshAccessToken, registerUser, updateUserAccountDetails, updateUserAvatar, updateUserCoverImage } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js"
 import { verifyJwtToken } from "../middlewares/auth.middleware.js";
 
@@ -15,7 +15,6 @@ router.route("/login").post(loginUser)
 router.route("/logout").post(verifyJwtToken,logoutUser)
 router.route("/refresh-token").post(refreshAccessToken)
 
-
 //change user password 
 router.route("/change-password").post(verifyJwtToken,changeCurrentUserPassword)
 
@@ -23,13 +22,16 @@ router.route("/change-password").post(verifyJwtToken,changeCurrentUserPassword)
 router.route("/current-user").get(verifyJwtToken,getCurrentUser)
 
 //update user account details
-router.route("/update-user-details").post(verifyJwtToken,updateUserAccountDetails)
+router.route("/update-user-details").patch(verifyJwtToken,updateUserAccountDetails)
 
 //image update routes
-router.route("/update-avatar").post(verifyJwtToken,upload.single("avatar") ,updateUserAvatar)
-router.route("/update-cover-image").post(verifyJwtToken,upload.single("coverImage"),updateUserCoverImage) 
+router.route("/update-avatar").patch(verifyJwtToken,upload.single("avatar") ,updateUserAvatar)
+router.route("/update-cover-image").patch(verifyJwtToken,upload.single("coverImage"),updateUserCoverImage) 
 
 //get User Channel Profile
-router.get("/channel-profile/:username", verifyJwtToken, getUserChannelProfile)
+router.route("/channel-profile/:username").get(verifyJwtToken, getUserChannelProfile)
+
+//get user watch history
+router.route("/watch-history").get(verifyJwtToken,getUserWatchHistory)
 
 export default router
